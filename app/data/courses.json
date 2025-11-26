@@ -1,0 +1,102 @@
+[
+  {
+    "code": "CSE",
+    "name": "B.Tech Computer Science and Engineering",
+    "description": "Focuses on programming, algorithms, data structures, operating systems, databases, computer networks and software engineering. Suits students who enjoy coding, logic, building applications and exploring core computer technologies."
+  },
+  {
+    "code": "CSD",
+    "name": "B.Tech CSE with Data Science",
+    "description": "Combines core computer science with data analysis, statistics, data visualisation and big data tools. Suitable for students who like working with data, discovering patterns and building data-driven solutions."
+  },
+  {
+    "code": "CSM",
+    "name": "B.Tech CSE with Artificial Intelligence and Machine Learning",
+    "description": "Includes fundamentals of computer science along with artificial intelligence, machine learning, deep learning and related tools. Ideal for students interested in intelligent systems, automation and AI-based applications."
+  },
+  {
+    "code": "CSC",
+    "name": "B.Tech CSE with Cyber Security",
+    "description": "Emphasises secure programming, network security, cryptography, ethical hacking and digital forensics. Fits students who are curious about protecting systems, analysing vulnerabilities and working as security professionals."
+  },
+  {
+    "code": "ECE",
+    "name": "B.Tech Electronics and Communication Engineering",
+    "description": "Covers electronic circuits, communication systems, signal processing, embedded systems and related technologies. Appropriate for students interested in electronics, communication devices, IoT and hardware-software integration."
+  },
+  {
+    "code": "EEE",
+    "name": "B.Tech Electrical and Electronics Engineering",
+    "description": "Focuses on power generation, transmission and distribution, electrical machines, control systems and power electronics. Good for students who like working with power systems, electrical infrastructure and industrial automation."
+  },
+  {
+    "code": "ME",
+    "name": "B.Tech Mechanical Engineering",
+    "description": "Deals with mechanics, thermodynamics, machine design, manufacturing processes and production engineering. Suitable for students who are interested in machines, automotive systems, design and core mechanical industries."
+  },
+  {
+    "code": "CE",
+    "name": "B.Tech Civil Engineering",
+    "description": "Concentrates on structural engineering, construction materials, surveying, transportation engineering, water resources and environmental aspects. Ideal for students who want to work on infrastructure, buildings and public works."
+  },
+  {
+    "code": "MTECH-CSE",
+    "name": "M.Tech Computer Science and Engineering",
+    "description": "A postgraduate programme focusing on advanced areas of computer science including algorithms, distributed computing, data engineering and research-oriented subjects. Suitable for graduates seeking specialised technical roles or academic careers."
+  },
+  {
+    "code": "MTECH-CADCAM",
+    "name": "M.Tech CAD/CAM",
+    "description": "Covers computer-aided design and computer-aided manufacturing, with emphasis on modelling, simulation and mechanical design automation. Suitable for students with a mechanical background who like design and manufacturing technologies."
+  },
+  {
+    "code": "MTECH-ES",
+    "name": "M.Tech Embedded Systems",
+    "description": "Focuses on embedded controllers, real-time systems, hardware-software co-design and applications in electronics and automation. Ideal for students who enjoy low-level programming and working close to hardware."
+  },
+  {
+    "code": "MTECH-PE",
+    "name": "M.Tech Power Electronics",
+    "description": "Deals with power electronic converters, drives and control of power systems. Fits students interested in advanced electrical and power electronics engineering roles."
+  },
+  {
+    "code": "MTECH-SE",
+    "name": "M.Tech Structural Engineering",
+    "description": "Specialises in analysis and design of concrete and steel structures, earthquake-resistant design and advanced structural engineering topics. Suitable for civil engineering graduates who want to work in design and consultancy."
+  },
+  {
+    "code": "MBA",
+    "name": "Master of Business Administration",
+    "description": "Two-year programme covering management fundamentals such as finance, marketing, human resources and operations. Appropriate for students who want careers in management, leadership and business roles in different sectors."
+  },
+  {
+    "code": "MCA",
+    "name": "Master of Computer Applications",
+    "description": "Postgraduate programme concentrating on application development, software engineering and advanced computing concepts. Best suited for graduates aiming at careers in software development and IT services."
+  },
+  {
+    "code": "DIP-CE",
+    "name": "Diploma in Civil Engineering",
+    "description": "Introduces fundamentals of civil engineering, surveying, construction materials and basic structural concepts. Suitable for students who want an early entry into construction and infrastructure fields."
+  },
+  {
+    "code": "DIP-CM",
+    "name": "Diploma in Computer Engineering",
+    "description": "Provides foundation in computer hardware, basic programming, networking and operating systems. A good starting point for students seeking technician or support roles in IT and computer labs."
+  },
+  {
+    "code": "DIP-ECE",
+    "name": "Diploma in Electronics and Communication Engineering",
+    "description": "Focuses on basics of electronics, communication circuits and instrumentation. Suitable for students who want to work as technicians in electronics, telecom or related industries."
+  },
+  {
+    "code": "DIP-EEE",
+    "name": "Diploma in Electrical and Electronics Engineering",
+    "description": "Covers fundamental concepts of electrical machines, wiring, power systems and basic electronics. Fits students interested in electrical maintenance and technician roles."
+  },
+  {
+    "code": "DIP-ME",
+    "name": "Diploma in Mechanical Engineering",
+    "description": "Provides core knowledge in mechanical systems, workshop practices and basic design concepts. Suitable for students who want hands-on roles in manufacturing and mechanical industries."
+  }
+]
