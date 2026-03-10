@@ -4,6 +4,9 @@ from flask import Blueprint, render_template, request, jsonify
 
 from . import retrieval_service, recommender  # we use recommender.courses as well
 
+from .services import retrieval, lm_studio
+
+
 bp = Blueprint("main", __name__)
 
 
@@ -20,11 +23,14 @@ def classify_intent(text: str) -> str:
         "which course", "which branch", "which stream",
         "suggest course", "suggest branch", "suggest me a course",
         "suggest me branch", "suggest branch for me",
+        "what course", "what branch",
         "i like", "i love",
         "my interest", "my interests",
         "i am interested in", "i'm interested in",
         "i have interest in", "i have deep interest in",
-        "interested in ai", "interested in ml"
+        "interested in ai", "interested in ml",
+        "suited for me", "suit me", "best for me", "better for me",
+        "passion", "passionate", "enjoy", "prefer"
     ]):
         return "course_recommendation"
 
@@ -80,6 +86,22 @@ def _shorten_snippet(snippet: str, max_sentences: int = 4, max_len: int = 500) -
     return short
 
 
+def _extract_answer_from_faq(snippet: str) -> str:
+    """
+    Extract just the answer from FAQ format.
+    Removes "Q: ..." and returns clean "A: ..." answer.
+    """
+    text = snippet.strip()
+    
+    # If it has FAQ format with "A:", extract just the answer part
+    if "A:" in text:
+        answer = text.split("A:", 1)[1].strip()
+        return answer
+    
+    # Otherwise return the text as-is
+    return text
+
+
 
 def _list_programmes(level: str) -> str:
     """
@@ -95,7 +117,7 @@ def _list_programmes(level: str) -> str:
                 items.append(c["name"])
     elif level == "mtech":
         for c in courses:
-            if c["code"].startswith("MTECH"):
+            if c["code"].startswith("MTECH-"):
                 items.append(c["name"])
     elif level == "diploma":
         for c in courses:
@@ -139,20 +161,37 @@ def chat():
             other_lines = "\n".join(lines[1:]) if len(lines) > 1 else "—"
 
             answer = (
-                f"You said: \"{user_msg}\"\n\n"
-                "Based on that, this programme at Ellenki looks like the best match for you:\n"
-                f"➡ {top['name']} ({top['code']})\n\n"
+                f"Based on your interests, this programme at Ellenki looks like the best match for you:\n\n"
+                f"🎯 {top['name']} ({top['code']})\n\n"
                 "Other close options:\n"
                 f"{other_lines}\n\n"
-                "Use this as guidance from your interests. For a final decision, "
-                "talk to parents, seniors or a college counsellor."
+                "This is a great starting point! I recommend talking to college counselors, seniors, or parents to make your final decision."
             )
         else:
-            answer = (
-                "I couldn't confidently match your interests to a course right now. "
-                "Try telling me what you enjoy, for example: "
-                "\"I like coding and AI\", or \"I like machines and physics\"."
-            )
+            # Check if it's a sports/general interest query
+            sports_keywords = ["cricket", "football", "basketball", "sports", "game", "play", "watching"]
+            is_sports_interest = any(kw in text_l for kw in sports_keywords)
+            
+            if is_sports_interest:
+                answer = (
+                    "I understand you enjoy sports like cricket/football! 🎾⚽ While Ellenki College doesn't offer courses specifically in sports, "
+                    "we have excellent extracurricular activities and sports facilities for students who love staying active.\n\n"
+                    "Our campus includes:\n"
+                    "• Sports competitions and tournaments\n"
+                    "• Well-equipped sports areas and grounds\n"
+                    "• Cultural and recreational activities\n\n"
+                    "For course recommendations, I'd love to hear about your academic interests! For example:\n"
+                    "• \"I like coding and technology\"\n"
+                    "• \"I'm interested in electronics and circuits\"\n"
+                    "• \"I enjoy physics and machines\"\n\n"
+                    "What subjects or technical areas interest you most?"
+                )
+            else:
+                answer = (
+                    "I couldn't confidently match your interests to a course right now. "
+                    "Try telling me what you enjoy, for example: "
+                    "\"I like coding and AI\", or \"I like machines and physics\"."
+                )
 
     # ---------- COLLEGE INFO MODE ----------
     elif intent == "college_info":
@@ -195,8 +234,10 @@ def chat():
                 context_snippets = []
 
             if context_snippets:
-                short = _shorten_snippet(context_snippets[0], max_sentences=2)
-                answer = short + "\n\nFor the latest exact details, please also check the official college website."
+                # Extract clean answer from FAQ format
+                clean_answer = _extract_answer_from_faq(context_snippets[0])
+                short = _shorten_snippet(clean_answer, max_sentences=2)
+                answer = short + "\n\nFor the latest exact details, please check the official college website."
             else:
                 answer = (
                     "I couldn't find this information in my Ellenki dataset. "
@@ -205,62 +246,130 @@ def chat():
 
     # ---------- GENERAL / FRIENDLY CHAT ----------
     else:
-        # name / identity
-        if ("your name" in text_l) or ("whats your name" in text_l) or ("what is your name" in text_l):
-            answer = (
-                "You can call me **Ella** 😊\n"
-                "I'm the Ellenki AI assistant here to answer questions about the college "
-                "and help you choose courses."
-            )
-        elif "who are you" in text_l or "about you" in text_l or "know about you" in text_l:
-            answer = (
-                "I'm Ella, the Ellenki AI Chatbot 🤖\n"
-                "I know a lot about Ellenki College, its courses, and campus life. "
-                "I can also suggest which branch suits you based on your interests."
-            )
-        elif "how are you" in text_l or "hru" in text_l:
-            answer = (
-                "I'm all good and fully charged ⚡️ Thanks for asking!\n"
-                "How are *you* feeling about your future and course selection?"
-            )
-        elif "hi" in text_l or "hello" in text_l:
-            answer = (
-                "Hi! 👋 I'm Ella, the Ellenki assistant.\n\n"
-                "• Ask me about Ellenki college (branches, hostel, placements, etc.)\n"
-                "• Or tell me your interests so I can suggest suitable branches.\n"
-                "Example: \"I like AI and coding\" or \"I like machines and physics\"."
-            )
-        elif "thank" in text_l:
-            answer = "You're welcome! 😊 If you have more questions about Ellenki or courses, just ask."
-        elif "love you" in text_l or "luv u" in text_l:
-            answer = "Aww, that's sweet 🥰 I'm always here to help you with your college journey!"
-        elif "sad" in text_l or "depressed" in text_l or "worried" in text_l or "tension" in text_l:
-            answer = (
-                "I'm sorry you're feeling that way 💙\n"
-                "Remember, it's okay to be confused or stressed about the future. "
-                "Try sharing what you're worried about, or ask me about courses that match "
-                "what you enjoy. Step by step, we’ll figure things out."
-            )
-        elif "motivate" in text_l or "scared" in text_l or "nervous" in text_l:
-            answer = (
-                "It's completely normal to feel nervous about choosing a course. "
-                "Think about what you actually enjoy learning:\n"
-                "• coding and logic → CSE / AI / Data Science\n"
-                "• machines and physics → Mechanical\n"
-                "• structures and construction → Civil\n"
-                "• circuits and gadgets → ECE / EEE\n"
-                "Once you start, you'll learn, adapt and grow. You’ve got this 💪"
-            )
-        else:
-            answer = (
-                "I'm a simple offline chatbot right now, but I'll still try to be your friend 🙂\n"
-                "I can:\n"
-                "• Answer many questions about Ellenki College\n"
-                "• Suggest B.Tech / M.Tech / Diploma / PG programmes based on your interests\n\n"
-                "You can ask things like:\n"
-                "• \"What B.Tech branches are available at Ellenki?\"\n"
-                "• \"What M.Tech courses are there?\"\n"
-                "• \"I like AI and coding, which course suits me?\""
-            )
+        # Enhanced strategy for general chat with better context retrieval and response generation
+        
+        # Step 1: Determine if query is college-related or general
+        college_keywords = [
+            "ellenki", "college", "course", "program", "admission", "campus", "hostel", 
+            "transport", "placement", "fee", "branch", "faculty", "principal", "chairman",
+            "infrastructure", "laboratory", "library", "sports", "club", "event", "ranking",
+            "intake", "capacity", "diploma", "btech", "mtech", "mba", "mca", "jntuh", "aicte",
+            "classroom", "lecture", "theatre", "computer", "center", "cafeteria", "recreation",
+            "industry", "interaction", "research", "international", "collaboration"
+        ]
+        is_college_related = any(keyword in text_l for keyword in college_keywords)
+        
+        answer = None
+        
+        if is_college_related:
+            # Strategy A: College-related queries - use enhanced RAG with multiple contexts
+            try:
+                # Retrieve more context for better responses
+                context_snippets = retrieval_service.retrieve(user_msg, top_k=4)
+            except Exception as e:
+                print("Error in retrieval:", e)
+                context_snippets = []
+            
+            if context_snippets:
+                clean_contexts = [_extract_answer_from_faq(c) for c in context_snippets]
+                
+                # Use LLM with enhanced prompting for college-specific queries
+                try:
+                    system_prompt = (
+                        "You are Ella, the intelligent and friendly AI assistant for Ellenki College of Engineering and Technology, "
+                        "created by Devi! 🌟 You have access to comprehensive information about the college.\n\n"
+                        "Your role: Provide accurate, enthusiastic, and helpful answers based on the provided context. "
+                        "Help students make informed decisions about their academic future.\n\n"
+                        "Guidelines:\n"
+                        "- Use the context to provide specific, accurate information with confidence\n"
+                        "- For numbers, rankings, or specific details, quote them accurately and cite context\n"
+                        "- Always include contact information when relevant: 9059420606, 9052771555, 9966555913, admissions@ellenkicet.ac.in\n"
+                        "- Highlight Ellenki's unique strengths and opportunities with genuine enthusiasm\n"
+                        "- Address student concerns professionally and encouragingly\n"
+                        "- Keep responses conversational, engaging, and easy to understand\n"
+                        "- If information isn't available, direct students to official channels\n"
+                        "- Show interest in the student's goals and aspirations"
+                    )
+                    
+                    # Combine multiple contexts for richer response
+                    combined_context = "\n\n".join(clean_contexts[:3])  # Use top 3 most relevant
+                    prompt = f"Context about Ellenki College:\n{combined_context}\n\nUser question: {user_msg}\n\nProvide a helpful answer:"
+                    
+                    generated = lm_studio.generate_from_prompt(
+                        prompt,
+                        system_prompt=system_prompt,
+                        temperature=0.4,  # Lower temperature for factual accuracy
+                        max_new_tokens=200
+                    )
+                    
+                    if generated and len(generated.strip()) > 20:
+                        answer = generated.strip()
+                        
+                except Exception as e:
+                    print(f"LLM with context error: {e}")
+                    # Fallback to best single context
+                    answer = clean_contexts[0] if clean_contexts else None
+        
+        # Strategy B: General queries or if college-specific failed
+        if not answer:
+            try:
+                # Enhanced system prompt for general queries with better strategies
+                system_prompt = (
+                    "You are Ella, a friendly, enthusiastic, and knowledgeable AI assistant for Ellenki College of Engineering and Technology. "
+                    "You were created by Devi with excellence and passion! 🌟\n"
+                    "Your mission: Help students with their academic journey, career guidance, and general education questions with warmth and expertise.\n\n"
+                    "Response Strategy Guidelines:\n"
+                    "1. For greetings: Be warm, introduce yourself as Ella (created by Devi), and ask how you can help\n"
+                    "2. For jokes/humor: Be fun, witty, and educational – connect humor to college life when possible\n"
+                    "3. For general knowledge: Provide accurate, insightful information with real-world relevance\n"
+                    "4. For career/academic advice: Be encouraging, practical, and inspire confidence\n"
+                    "5. For Ellenki-specific questions: Reference college details or direct to: 9059420606, 9052771555, 9966555913, admissions@ellenkicet.ac.in\n"
+                    "6. Always maintain a professional yet friendly, enthusiastic tone\n"
+                    "7. Connect topics back to Ellenki's strengths in engineering and technology\n"
+                    "8. Keep responses engaging (2-4 sentences) with personality – use emojis sparingly for warmth\n"
+                    "9. End with a helpful offer or question to continue the conversation\n"
+                    "10. Show genuine interest in the student's goals and aspirations"
+                )
+                
+                generated = lm_studio.generate_from_prompt(
+                    user_msg,
+                    system_prompt=system_prompt,
+                    temperature=0.6,  # Balanced creativity and consistency
+                    max_new_tokens=180
+                )
+                
+                if generated and len(generated.strip()) > 15:
+                    answer = generated.strip()
+                else:
+                    answer = None
+                    
+            except Exception as e:
+                print(f"LLM general generation error: {e}")
+                answer = None
+        
+        # Final fallback: Provide helpful default response
+        if not answer or len(answer.strip()) < 10:
+            if "greeting" in text_l or "hi" in text_l or "hello" in text_l:
+                answer = (
+                    "Hey there! 👋 I'm Ella, your AI assistant for Ellenki College of Engineering and Technology, "
+                    "proudly created by Devi! ✨\n\n"
+                    "I'm here to guide you through your academic journey with:\n"
+                    "💡 Smart Course Recommendations - Find your perfect fit!\n"
+                    "🏫 Detailed College Information - Learn all about our campus\n"
+                    "🎓 Admissions Guidance - I've got answers!\n"
+                    "📚 Career & Education Advice - Your success is my priority\n\n"
+                    "What would you like to explore about Ellenki College today?"
+                )
+            else:
+                answer = (
+                    "Hey! I'm Ella, your AI-powered Ellenki College assistant, created by Devi! 🌟\n\n"
+                    "I'm excited to help with:\n"
+                    "• 🎯 Personalized Course Recommendations based on your interests\n"
+                    "• 📖 Comprehensive College Information & FAQs\n"
+                    "• 📝 Admissions Details & Application Guidance\n"
+                    "• 💬 General Education Questions & Career Advice\n\n"
+                    "Whether you're curious about CSE, ECE, mechanical engineering, or anything else at Ellenki, "
+                    "I'm here to make your decision easier! What's on your mind? 😊"
+                )
 
     return jsonify({"reply": answer}), 200

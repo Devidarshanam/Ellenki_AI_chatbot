@@ -6,3 +6,4 @@ sentence-transformers
 scikit-learn
 
 openai>=1.0.0
+requests>=2.28.0
